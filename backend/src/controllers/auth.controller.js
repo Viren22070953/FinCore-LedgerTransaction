@@ -1,0 +1,178 @@
+const userModel=require('../models/user.model');
+const jwt=require('jsonwebtoken');
+const crypto=require('crypto');
+const emailService=require('../services/email.service');
+const bcrypt=require('bcryptjs');
+
+
+async function registerUser(req,res){
+
+  try{
+    const {name,email,password}=req.body;
+
+    const isExist=await userModel.findOne({
+      email:email
+    })
+
+    if(isExist){
+      return res.status(422).json({message:"User already exists"});
+    }
+
+    const user=await userModel.create({
+      email,
+      name,
+      password
+    })
+
+    const token=jwt.sign({
+      userId:user._id,
+    },process.env.JWT_SECRET)
+
+    res.cookie('token',token,);
+
+    res.status(201).json({message:"User registered successfully",
+      user:{
+        _id:user._id,
+        email:user.email,
+        name:user.name
+      },
+      token
+    });
+
+    await emailService.sendRegistrationEmail(user.email,user.name);
+
+    
+    
+  }
+
+  catch(error){
+    console.error(error);
+    return res.status(500).json({message:"Server error"});
+  }
+}
+
+async function loginUser(req,res){
+  try{
+    const {email,password}=req.body;
+
+    const user=await userModel.findOne({
+      email:email
+    }).select('+password');
+
+    if(!user){
+      return res.status(404).json({message:"User not found"});
+    }
+
+    const isValidPassword = await user.comparePassword(password);
+
+    if (!isValidPassword) {
+      return res.status(401).json({ message: "Invalid password or Email" });
+    } 
+
+    const token = jwt.sign({
+      userId: user._id,
+    }, process.env.JWT_SECRET);
+
+    res.cookie('token', token);
+
+    return res.status(200).json({
+      message: "User logged in successfully",
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name
+      },
+      token
+    });
+  }
+  catch(error){
+    console.error(error);
+    return res.status(500).json({message:"Server error"});
+  }
+}
+
+async function forgotPassword(req,res){
+
+  try{
+    const {email}=req.body;
+    const user=await userModel.findOne({
+      email
+    })
+
+    if(!user){
+      return res.status(404).json({message:"If user exists, a password reset link will be sent to the email"});
+    }
+
+    const resetToken=crypto.randomBytes(32).toString("hex");
+
+   
+
+    user.resetPasswordToken=resetToken;
+     user.resetPasswordExpires=Date.now()+10*60*1000;
+
+    await user.save();
+
+    const resetLink=`http://localhost:3000/reset-password?token=${resetToken}`;
+
+    await emailService.sendPasswordResetEmail(user.email,user.name,resetLink);
+
+    return res.status(200).json({
+      message:"Mail Sent Successfully",
+      resetToken
+    });
+
+  
+
+  }
+
+  catch(error){
+    console.error(error);
+    return res.status(500).json({message:"Server error"});
+  }
+}
+
+async function resetPassword(req,res){
+
+  try{
+    const {token}=req.params;
+    const {password}=req.body;
+
+    console.log(token);
+
+
+    const user=await userModel.findOne({
+      resetPasswordToken:token,
+      resetPasswordExpires:{$gt:Date.now()}
+    })
+
+
+
+    if(!user){
+      return res.status(400).json({message:"Invalid or expired token"});
+    }
+
+     const hash=await bcrypt.hash(password,10);
+    
+    user.password=hash;
+    user.resetPasswordToken=undefined;
+    user.resetPasswordExpires=undefined;
+    await user.save();
+    return res.status(200).json({message:"Password reset successfully"});
+  }
+  catch(error){
+    console.error(error);
+    return res.status(500).json({message:"Server error"});
+  }
+}
+
+
+
+
+
+module.exports={
+  registerUser,
+  loginUser,
+  forgotPassword,
+  resetPassword
+}
+
