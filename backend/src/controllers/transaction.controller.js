@@ -6,6 +6,8 @@ const accountModel=require("../models/account.model")
 const ledgerModel=require("../models/ledger.model")
 const emailService=require('../services/email.service');
 
+const userModel=require("../models/user.model")
+
 
 
 
@@ -39,6 +41,9 @@ async function createTransaction(req,res){
   const fromUserAccount=await accountModel.findOne({_id:fromAccount})
 
   const toUserAccount=await accountModel.findOne({_id:toAccount})
+
+  const receiver=await userModel.findOne({_id:toUserAccount.user.toString()})
+
 
   if(!fromUserAccount || !toUserAccount){
     return res.status(400).json({
@@ -143,7 +148,7 @@ async function createTransaction(req,res){
     session.endSession();
 
     //10
-   await emailService.sendRegistrationEmail(req.user.email,req.user.name);
+   await emailService.sendTransactionEmail(req.user.email , req.user.name ,amount , receiver.name);
 
    return res.status(201).json({
     message:"Transaction completed succesfully",
