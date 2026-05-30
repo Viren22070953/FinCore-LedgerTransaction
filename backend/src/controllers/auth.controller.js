@@ -4,6 +4,8 @@ const crypto=require('crypto');
 const emailService=require('../services/email.service');
 const bcrypt=require('bcryptjs');
 
+const tokenBlackListModel=require("../models/blackList.model")
+
 
 async function registerUser(req,res){
 
@@ -91,6 +93,30 @@ async function loginUser(req,res){
   }
 }
 
+async function logoutUser(req,res){
+
+  const token=req.cookies.token
+
+  if(!token){
+    return res.status(400).json({
+      message:"User Logged out succesfully"
+    })
+  }
+
+  res.cookie("token","");
+
+  await tokenBlackListModel.create({
+    token:token
+  })
+
+  res.status(200).json({
+    message:"user logged out succesfully"
+  })
+
+  
+
+}
+
 async function forgotPassword(req,res){
 
   try{
@@ -172,6 +198,7 @@ async function resetPassword(req,res){
 module.exports={
   registerUser,
   loginUser,
+  logoutUser,
   forgotPassword,
   resetPassword
 }
