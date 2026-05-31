@@ -140,7 +140,11 @@ async function forgotPassword(req,res){
 
     const resetLink=`http://localhost:3000/reset-password?token=${resetToken}`;
 
-    await emailService.sendPasswordResetEmail(user.email,user.name,resetLink);
+    await emailService.sendPasswordResetEmail(
+      user.email,
+      user.name,
+      resetLink
+    );
 
     return res.status(200).json({
       message:"Mail Sent Successfully",
@@ -163,13 +167,14 @@ async function resetPassword(req,res){
     const {token}=req.params;
     const {password}=req.body;
 
-    console.log(token);
+    console.log(password);
+
 
 
     const user=await userModel.findOne({
       resetPasswordToken:token,
       resetPasswordExpires:{$gt:Date.now()}
-    })
+    }).select('+password')
 
 
 
@@ -177,9 +182,8 @@ async function resetPassword(req,res){
       return res.status(400).json({message:"Invalid or expired token"});
     }
 
-     const hash=await bcrypt.hash(password,10);
+    user.password=password;
     
-    user.password=hash;
     user.resetPasswordToken=undefined;
     user.resetPasswordExpires=undefined;
     await user.save();

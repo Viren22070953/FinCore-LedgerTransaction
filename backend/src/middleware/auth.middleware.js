@@ -47,7 +47,7 @@ async function authSystemUserMiddleware(req,res,next){
       return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  const isBlackListed=await tokenBlackistedModel.findOne({
+  const isBlackListed=await tokenBlackListModel.findOne({
       token
     })
 

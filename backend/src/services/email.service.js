@@ -64,8 +64,64 @@ async function sendTransactionFailureEmail(userEmail, name, amount, receiverName
     await sendEmail(userEmail, subject, text, html);
 }
 
+async function sendPasswordResetEmail(userEmail, name, resetLink) {
+    const subject = "Password Reset Request";
+
+    const text = `
+Hello ${name},
+
+We received a request to reset your password.
+
+Click the link below to reset your password:
+
+${resetLink}
+
+This link will expire in 10 minutes.
+
+If you did not request a password reset, please ignore this email.
+
+Best Regards,
+Backend Ledger Team
+`;
+
+    const html = `
+        <div style="font-family: Arial, sans-serif;">
+            <h2>Password Reset Request</h2>
+
+            <p>Hello <strong>${name}</strong>,</p>
+
+            <p>We received a request to reset your password.</p>
+
+            <p>
+                <a href="${resetLink}"
+                   style="
+                     background-color:#2563eb;
+                     color:white;
+                     padding:10px 20px;
+                     text-decoration:none;
+                     border-radius:5px;
+                     display:inline-block;
+                   ">
+                    Reset Password
+                </a>
+            </p>
+
+            <p>This link will expire in <strong>10 minutes</strong>.</p>
+
+            <p>If you did not request a password reset, please ignore this email.</p>
+
+            <p>
+                Best Regards,<br>
+                Backend Ledger Team
+            </p>
+        </div>
+    `;
+
+    await sendEmail(userEmail, subject, text, html);
+}
 module.exports = {
     sendRegistrationEmail,
     sendTransactionEmail,
-    sendTransactionFailureEmail
+    sendTransactionFailureEmail,
+    sendPasswordResetEmail
 };

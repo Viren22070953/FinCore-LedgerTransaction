@@ -6,7 +6,7 @@ const transactionController=require('../controllers/transaction.controller')
 
 const router=express.Router();
 
-router.post('/',authMiddleware.authMiddleware,transactionController.createTransaction)
+router.post('/user/transaction',authMiddleware.authMiddleware,transactionController.createTransaction)
 
 //create initial funds by the system user
 router.post('/system/intial-funds',authMiddleware.authSystemUserMiddleware,transactionController.createInitialFundsTransaction)
