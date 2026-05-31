@@ -13,7 +13,7 @@ const app=express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173","http://127.0.0.1:5173", "https://fin-core-ledger-transaction.vercel.app/"],
+    origin: ["http://localhost:5173","http://127.0.0.1:5173", "https://fin-core-ledger-transaction.vercel.app"],
     credentials: true,
   })
 );
@@ -21,7 +21,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-app.post("/",(req,res)=>{
+app.get("/",(req,res)=>{
   res.send("Ledger services started")
 })
 app.use('/api/auth',authRoutes);

@@ -30,11 +30,12 @@ async function registerUser(req,res){
       userId:user._id,
     },process.env.JWT_SECRET)
 
-    res.cookie('token',token,
-    {
+    const isProduction = process.env.NODE_ENV === "production";
+
+    res.cookie("token", token, {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false,
+      sameSite: isProduction ? "none" : "lax",
+      secure: isProduction,
     });
 
     res.status(201).json({message:"User registered successfully",
