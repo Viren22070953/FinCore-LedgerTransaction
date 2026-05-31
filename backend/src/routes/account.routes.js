@@ -5,12 +5,12 @@ const authMiddleware=require('../middleware/auth.middleware');
 
 const router=express.Router();
 
-router.post("/",authMiddleware.authMiddleware,accountController.createAccount);
+router.post("/create",authMiddleware.authMiddleware,accountController.createAccount);
 
-router.get("/getAccount",authMiddleware.authMiddleware,accountController.getAllAccounts)
+router.get("/my-accounts",authMiddleware.authMiddleware,accountController.getMyAccounts)
 
 
-router.get("/:accountId",authMiddleware.authMiddleware,accountController.getBalance)
+router.get("/:accountId/balance",authMiddleware.authMiddleware,accountController.getBalance)
 
 
 module.exports = router;

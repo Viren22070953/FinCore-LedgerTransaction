@@ -4,10 +4,20 @@ const authRoutes=require('./routes/auth.routes');
 const accountRoutes=require('./routes/account.routes');
 
 const transactionRoutes=require("./routes/transaction.routes")
-
+const cors = require("cors");
 const cookieParser=require('cookie-parser');
 
+
 const app=express();
+
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -17,7 +27,7 @@ app.post("/",(req,res)=>{
 app.use('/api/auth',authRoutes);
 app.use('/api/accounts',accountRoutes);
 
-app.use('/api/transaction',transactionRoutes)
+app.use('/api/transactions',transactionRoutes)
 
 
 

@@ -29,11 +29,11 @@ async function createAccount(req,res){
   }
 }
 
-async function getAllAccounts(req,res){
+async function getMyAccounts(req,res){
 
   const allAccounts=await accountModel.find({user:req.user._id});
 
-  res.status(201).json({
+  res.status(200).json({
     message:"Fetched All Accounts",
     allAccounts
   })
@@ -77,4 +77,4 @@ async function getBalance(req,res){
 
 
 }
-module.exports={createAccount,getAllAccounts,getBalance};
+module.exports={createAccount,getMyAccounts,getBalance};

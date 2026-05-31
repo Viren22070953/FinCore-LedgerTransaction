@@ -6,10 +6,12 @@ const transactionController=require('../controllers/transaction.controller')
 
 const router=express.Router();
 
-router.post('/user/transaction',authMiddleware.authMiddleware,transactionController.createTransaction)
+router.post('/create',authMiddleware.authMiddleware,transactionController.createTransaction)
 
 //create initial funds by the system user
-router.post('/system/intial-funds',authMiddleware.authSystemUserMiddleware,transactionController.createInitialFundsTransaction)
+router.post('/intial-funds',authMiddleware.authSystemUserMiddleware,transactionController.createInitialFundsTransaction)
+
+router.get("/history",authMiddleware.authMiddleware,transactionController.getTransactionHistory)
 
 
 

@@ -30,7 +30,12 @@ async function registerUser(req,res){
       userId:user._id,
     },process.env.JWT_SECRET)
 
-    res.cookie('token',token,);
+    res.cookie('token',token,
+    {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+    });
 
     res.status(201).json({message:"User registered successfully",
       user:{
@@ -75,7 +80,13 @@ async function loginUser(req,res){
       userId: user._id,
     }, process.env.JWT_SECRET);
 
-    res.cookie('token', token);
+    res.cookie('token', token,
+    {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+    });
+  
 
     return res.status(200).json({
       message: "User logged in successfully",
@@ -138,7 +149,7 @@ async function forgotPassword(req,res){
 
     await user.save();
 
-    const resetLink=`http://localhost:3000/reset-password?token=${resetToken}`;
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
     await emailService.sendPasswordResetEmail(
       user.email,
@@ -164,8 +175,7 @@ async function forgotPassword(req,res){
 async function resetPassword(req,res){
 
   try{
-    const {token}=req.params;
-    const {password}=req.body;
+    const {token,password}=req.body;
 
     console.log(password);
 

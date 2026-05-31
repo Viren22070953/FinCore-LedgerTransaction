@@ -250,4 +250,89 @@ async function createInitialFundsTransaction(req,res){
 
 }
 
-module.exports={createTransaction,createInitialFundsTransaction};
+
+
+async function getTransactionHistory(req, res) {
+  try {
+    const userId = req.user._id;
+
+    const userAccounts = await accountModel.find({ user: userId }).select("_id");
+
+    const accountIds = userAccounts.map((account) => account._id);
+
+    const transactions = await transactionModel
+      .find({
+        $or: [
+          { fromAccount: { $in: accountIds } },
+          { toAccount: { $in: accountIds } },
+        ],
+      })
+      .populate({
+        path: "fromAccount",
+        select: "user",
+        populate: {
+          path: "user",
+          select: "name email",
+        },
+      })
+      .populate({
+        path: "toAccount",
+        select: "user",
+        populate: {
+          path: "user",
+          select: "name email",
+        },
+      })
+      .sort({ createdAt: -1 });
+
+    const formattedTransactions = transactions.map((transaction) => {
+      const fromAccountId = transaction.fromAccount?._id?.toString();
+      const toAccountId = transaction.toAccount?._id?.toString();
+
+      const isDebit = accountIds.some(
+        (accountId) => accountId.toString() === fromAccountId
+      );
+
+      const isCredit = accountIds.some(
+        (accountId) => accountId.toString() === toAccountId
+      );
+
+      return {
+        _id: transaction._id,
+        amount: transaction.amount,
+        status: transaction.status,
+        idempotencyKey: transaction.idempotencyKey,
+        createdAt: transaction.createdAt,
+        updatedAt: transaction.updatedAt,
+
+        type: isDebit ? "DEBIT" : "CREDIT",
+
+        fromUser: {
+          name: transaction.fromAccount?.user?.name || "Unknown user",
+          email: transaction.fromAccount?.user?.email || "",
+        },
+
+        toUser: {
+          name: transaction.toAccount?.user?.name || "Unknown user",
+          email: transaction.toAccount?.user?.email || "",
+        },
+
+        directionText: isDebit
+          ? `Sent to ${transaction.toAccount?.user?.name || "Unknown user"}`
+          : `Received from ${
+              transaction.fromAccount?.user?.name || "Unknown user"
+            }`,
+      };
+    });
+
+    return res.status(200).json({
+      message: "Transaction history fetched successfully",
+      transactions: formattedTransactions,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+}
+
+module.exports={createTransaction,createInitialFundsTransaction,getTransactionHistory};
